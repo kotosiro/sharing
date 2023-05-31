@@ -59,7 +59,7 @@ async fn route(
             "/admin/shares/:share/schemas/:schema/tables",
             post(admin::shares::schemas::tables::post),
         )
-        .route_layer(middleware::from_fn(jwt::as_admin))
+        .route_layer(middleware::from_fn(jwt::as_administrator))
         .route("/admin/login", post(self::admin::login))
         .layer(Extension(state.clone()));
 
@@ -87,7 +87,7 @@ async fn route(
             "/shares/:share/schemas/:schema/tables/:table/query",
             post(self::shares::schemas::tables::query::post),
         )
-        .route_layer(middleware::from_fn(jwt::as_guest))
+        .route_layer(middleware::from_fn(jwt::as_recipient))
         .layer(Extension(state.clone()));
 
     let app = Router::new()

@@ -41,16 +41,19 @@ pub struct Claims {
 #[sqlx(type_name = "VARCHAR")]
 pub enum Role {
     #[strum(ascii_case_insensitive)]
-    Admin,
+    Administrator,
     #[strum(ascii_case_insensitive)]
-    Guest,
+    Provider,
+    #[strum(ascii_case_insensitive)]
+    Recipient,
 }
 
 impl AsRef<str> for Role {
     fn as_ref(&self) -> &str {
         match self {
-            Role::Admin => "admin",
-            Role::Guest => "guest",
+            Role::Administrator => "administrator",
+            Role::Provider => "provider",
+            Role::Recipient => "recipient",
         }
     }
 }
@@ -76,7 +79,7 @@ impl Keys {
 }
 
 #[tracing::instrument(skip(next))]
-pub async fn as_admin<T>(
+pub async fn as_administrator<T>(
     mut request: Request<T>,
     next: Next<T>,
 ) -> std::result::Result<Response, Error>
@@ -108,7 +111,7 @@ where
         tracing::error!("account was not found");
 	return Err(Error::Unauthorized);
     };
-    if jwt.claims.role != Role::Admin {
+    if jwt.claims.role != Role::Administrator {
         tracing::error!("request is forbidden from being fulfilled due to the JWT claims' role");
         return Err(Error::Forbidden);
     }
@@ -117,7 +120,51 @@ where
 }
 
 #[tracing::instrument(skip(next))]
-pub async fn as_guest<T>(request: Request<T>, next: Next<T>) -> std::result::Result<Response, Error>
+pub async fn as_provider<T>(
+    mut request: Request<T>,
+    next: Next<T>,
+) -> std::result::Result<Response, Error>
+where
+    T: std::fmt::Debug,
+{
+    let Some(auth) = request.headers().typed_get::<Authorization<Bearer>>() else {
+        tracing::error!("bearer token is missing");
+	return Err(Error::BadRequest);
+    };
+    let token = auth.token().to_owned();
+    let Ok(jwt) = decode::<Claims>(&token, &JWT_SECRET.decoding, &Validation::default()) else {
+        tracing::error!("bearer token cannot be decoded");
+        return Err(Error::Unauthorized);
+    };
+    let Some(state) = request.extensions().get::<SharedState>() else {
+        tracing::error!("request is not handled correctly due to a server error while acquiring server state");
+        return Err(anyhow!("failed to acquire shared state").into());
+    };
+    let Ok(name) = AccountName::new(jwt.claims.name.clone()) else {
+        tracing::error!("JWT claims' account name is malformed");
+	return Err(Error::ValidationFailed);
+    };
+    let Ok(account) = AccountEntity::load(&name, &state.pg_pool).await else {
+        tracing::error!("request is not handled correctly due to a server error while selecting account");
+        return Err(anyhow!("error occured while selecting account from database").into());
+    };
+    let Some(account) = account else {
+        tracing::error!("account was not found");
+	return Err(Error::Unauthorized);
+    };
+    if jwt.claims.role != Role::Provider {
+        tracing::error!("request is forbidden from being fulfilled due to the JWT claims' role");
+        return Err(Error::Forbidden);
+    }
+    request.extensions_mut().insert(account);
+    Ok(next.run(request).await)
+}
+
+#[tracing::instrument(skip(next))]
+pub async fn as_recipient<T>(
+    request: Request<T>,
+    next: Next<T>,
+) -> std::result::Result<Response, Error>
 where
     T: std::fmt::Debug,
 {
