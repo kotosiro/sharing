@@ -173,9 +173,13 @@ where
 	return Err(Error::BadRequest);
     };
     let token = auth.token().to_owned();
-    let Ok(_) = decode::<Claims>(&token, &JWT_SECRET.decoding, &Validation::default()) else {
+    let Ok(jwt) = decode::<Claims>(&token, &JWT_SECRET.decoding, &Validation::default()) else {
         tracing::error!("bearer token cannot be decoded");
         return Err(Error::Unauthorized)?;
     };
+    if jwt.claims.role != Role::Recipient {
+        tracing::error!("request is forbidden from being fulfilled due to the JWT claims' role");
+        return Err(Error::Forbidden);
+    }
     Ok(next.run(request).await)
 }
