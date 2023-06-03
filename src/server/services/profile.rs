@@ -94,7 +94,7 @@ mod tests {
 
     //#[test]
     fn test_expired_profile() -> Result<()> {
-        let roles = vec!["Admin", "Guest"];
+        let roles = vec!["administrator", "provider", "recipient"];
         let role = testutils::rand::choose(&roles);
         let role = Role::from_str(role).context("failed to choose role")?;
         let two_mins = Duration::from_millis(120000);
@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_unexpired_profile() -> Result<()> {
-        let roles = vec!["Admin", "Guest"];
+        let roles = vec!["administrator", "provider", "recipient"];
         let role = testutils::rand::choose(&roles);
         let role = Role::from_str(role).context("failed to choose role")?;
         let profile = Service::issue(

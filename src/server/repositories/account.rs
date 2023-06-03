@@ -16,6 +16,7 @@ pub struct Row {
     pub password: String,
     pub namespace: String,
     pub ttl: i64,
+    pub role: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -35,15 +36,17 @@ impl Repository {
                  email,
                  password,
                  namespace,
-                 ttl
-             ) VALUES ($1, $2, $3, $4, $5, $6)
+                 ttl,
+                 role
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7)
              ON CONFLICT(id)
              DO UPDATE
              SET name = $2,
                  email = $3,
                  password = $4,
                  namespace = $5,
-                 ttl = $6",
+                 ttl = $6,
+                 role = $7",
         )
         .bind(account.id())
         .bind(account.name())
@@ -51,6 +54,7 @@ impl Repository {
         .bind(account.password())
         .bind(account.namespace())
         .bind(account.ttl())
+        .bind(account.role())
         .execute(&mut *conn)
         .await
         .context(format!(
@@ -72,6 +76,7 @@ impl Repository {
                  password,
                  namespace,
                  ttl,
+                 role,
                  created_at,
                  updated_at
              FROM account
@@ -97,6 +102,11 @@ mod tests {
     use sqlx::PgPool;
 
     async fn create(tx: &mut PgConnection) -> Result<Entity> {
+        let roles = vec![
+            String::from("administrator"),
+            String::from("provider"),
+            String::from("recipient"),
+        ];
         let account = Entity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
@@ -104,6 +114,7 @@ mod tests {
             testutils::rand::string(10),
             testutils::rand::string(10),
             testutils::rand::i64(1, 100000),
+            testutils::rand::choose(&roles).to_owned(),
         )
         .context("failed to validate account")?;
         Repository::upsert(&account, tx)
@@ -132,6 +143,7 @@ mod tests {
             assert_eq!(&fetched.password, account.password().as_str());
             assert_eq!(&fetched.namespace, account.namespace().as_str());
             assert_eq!(&fetched.ttl, account.ttl().as_i64());
+            assert_eq!(&fetched.role, account.role().as_ref());
         } else {
             panic!("created account should be matched");
         }

@@ -1,5 +1,6 @@
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
+use crate::server::middlewares::jwt::Role;
 use crate::server::utilities::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
@@ -14,6 +15,7 @@ pub struct Account {
     pub email: String,
     pub namespace: String,
     pub ttl: i64,
+    pub role: Role,
 }
 
 impl Account {
@@ -23,6 +25,7 @@ impl Account {
             email: entity.email().to_string(),
             namespace: entity.namespace().to_string(),
             ttl: entity.ttl().to_i64(),
+            role: *entity.role(),
         }
     }
 }
@@ -44,7 +47,8 @@ impl Service {
                  name,
                  email,
                  namespace,
-                 ttl
+                 ttl,
+                 role
              FROM account",
         );
         if let Some(name) = after {
@@ -83,7 +87,8 @@ impl Service {
                  name,
                  email,
                  namespace,
-                 ttl
+                 ttl,
+                 role
              FROM account
              WHERE name = $1",
         )
@@ -110,6 +115,11 @@ mod tests {
     use std::cmp::min;
 
     async fn create(tx: &mut PgConnection) -> Result<AccountEntity> {
+        let roles = vec![
+            String::from("administrator"),
+            String::from("provider"),
+            String::from("recipient"),
+        ];
         let account = AccountEntity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
@@ -117,6 +127,7 @@ mod tests {
             testutils::rand::string(10),
             testutils::rand::string(10),
             testutils::rand::i64(1, 100000),
+            testutils::rand::choose(&roles).to_owned(),
         )
         .context("failed to validate account")?;
         AccountRepository::upsert(&account, tx)
@@ -190,6 +201,7 @@ mod tests {
             assert_eq!(&fetched.email, account.email().as_str());
             assert_eq!(&fetched.namespace, account.namespace().as_str());
             assert_eq!(&fetched.ttl, account.ttl().as_i64());
+            assert_eq!(&fetched.role, account.role());
         } else {
             panic!("created account should be found");
         }

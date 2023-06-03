@@ -27,6 +27,7 @@ pub struct AdminAccountsPostRequest {
     pub password: String,
     pub namespace: String,
     pub ttl: i64,
+    pub role: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -58,7 +59,8 @@ pub async fn post(
 	payload.email,
 	payload.password,
 	payload.namespace,
-	payload.ttl
+	payload.ttl,
+	payload.role,
     ) else {
         tracing::error!("requested account data is malformed");
         return Err(Error::ValidationFailed);

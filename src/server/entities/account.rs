@@ -1,6 +1,7 @@
 use crate::impl_i64_property;
 use crate::impl_string_property;
 use crate::impl_uuid_property;
+use crate::server::middlewares::jwt::Role;
 use crate::server::repositories::account::Repository;
 use anyhow::anyhow;
 use anyhow::Result;
@@ -78,6 +79,8 @@ pub struct Entity {
     namespace: Namespace,
     #[getset(get = "pub", set = "pub")]
     ttl: Ttl,
+    #[getset(get = "pub", set = "pub")]
+    role: Role,
 }
 
 fn hash(password: &[u8]) -> Result<String> {
@@ -104,6 +107,7 @@ impl Entity {
         password: String,
         namespace: String,
         ttl: i64,
+        role: String,
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
@@ -112,6 +116,7 @@ impl Entity {
             password: Password::new(self::hash(password.as_bytes()).unwrap())?,
             namespace: Namespace::new(namespace)?,
             ttl: Ttl::new(ttl)?,
+            role: role.parse()?,
         })
     }
 
@@ -124,6 +129,7 @@ impl Entity {
                 password: Password::new(row.password)?,
                 namespace: Namespace::new(row.namespace)?,
                 ttl: Ttl::new(row.ttl)?,
+                role: row.role.parse()?,
             }
             .into()),
             _ => Ok(None),
@@ -142,6 +148,7 @@ impl Entity {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn test_valid_id() {
@@ -208,4 +215,19 @@ mod tests {
             Err(_)
         ));
     }
+
+    #[test]
+    fn test_valid_role() {
+        let candidates = vec!["administrator", "provider", "recipient"];
+        let role = testutils::rand::choose(&candidates);
+        assert!(matches!(Role::from_str(role), Ok(_)));
+    }
+
+    //    #[test]
+    //    fn test_invalid_role() {
+    //        assert!(matches!(
+    //            Ttl::new(testutils::rand::i64(-100000, -1)),
+    //            Err(_)
+    //        ));
+    //    }
 }

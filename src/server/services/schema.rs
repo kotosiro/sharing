@@ -108,6 +108,11 @@ mod tests {
     use std::cmp::min;
 
     async fn create_account(tx: &mut PgConnection) -> Result<AccountEntity> {
+        let roles = vec![
+            String::from("administrator"),
+            String::from("provider"),
+            String::from("recipient"),
+        ];
         let account = AccountEntity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
@@ -115,6 +120,7 @@ mod tests {
             testutils::rand::string(10),
             testutils::rand::string(10),
             testutils::rand::i64(1, 100000),
+            testutils::rand::choose(&roles).to_owned(),
         )
         .context("failed to validate account")?;
         AccountRepository::upsert(&account, tx)

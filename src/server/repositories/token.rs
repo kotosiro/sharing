@@ -69,6 +69,11 @@ mod tests {
     use std::str::FromStr;
 
     async fn create_account(tx: &mut PgConnection) -> Result<Account> {
+        let roles = vec![
+            String::from("administrator"),
+            String::from("provider"),
+            String::from("recipient"),
+        ];
         let account = Account::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
@@ -76,6 +81,7 @@ mod tests {
             testutils::rand::string(10),
             testutils::rand::string(10),
             testutils::rand::i64(1, 100000),
+            testutils::rand::choose(&roles).to_owned(),
         )
         .context("failed to validate account")?;
         AccountRepository::upsert(&account, tx)
@@ -85,7 +91,7 @@ mod tests {
     }
 
     async fn create_token(account_id: &AccountId, tx: &mut PgConnection) -> Result<Entity> {
-        let roles = vec!["Admin", "Guest"];
+        let roles = vec!["administrator", "provider", "recipient"];
         let role = testutils::rand::choose(&roles);
         let role = Role::from_str(role).context("failed to choose role")?;
         let token = Entity::new(

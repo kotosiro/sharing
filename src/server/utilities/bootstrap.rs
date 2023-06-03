@@ -17,6 +17,7 @@ impl Utility {
             config::fetch::<String>("admin_password"),
             config::fetch::<String>("admin_namespace"),
             config::fetch::<i64>("admin_ttl"),
+            String::from("administrator"),
         ) {
             admin
         } else {
