@@ -52,14 +52,14 @@ impl Entity {
     pub fn new(
         id: impl Into<Option<String>>,
         email: String,
-        role: Role,
+        role: String,
         value: String,
         created_by: String,
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             email: Email::new(email)?,
-            role: role,
+            role: role.parse()?,
             value: Value::new(value)?,
             created_by: AccountId::try_from(created_by)?,
         })
@@ -73,6 +73,7 @@ impl Entity {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn test_valid_id() {
@@ -92,6 +93,20 @@ mod tests {
     #[test]
     fn test_invalid_email() {
         assert!(matches!(Email::new(testutils::rand::string(20)), Err(_)));
+    }
+
+    #[test]
+    fn test_valid_role() {
+        let candidates = vec!["administrator", "provider", "recipient"];
+        let role = testutils::rand::choose(&candidates);
+        assert!(matches!(Role::from_str(role), Ok(_)));
+    }
+
+    #[test]
+    fn test_invalid_role() {
+        let candidates = vec!["apple", "orange", "strawberry", "grape"];
+        let role = testutils::rand::choose(&candidates);
+        assert!(matches!(Role::from_str(role), Err(_)));
     }
 
     #[test]

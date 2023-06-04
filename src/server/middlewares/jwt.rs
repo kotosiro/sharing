@@ -60,7 +60,20 @@ impl AsRef<str> for Role {
 
 impl std::fmt::Display for Role {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        match self {
+            Role::Administrator => write!(f, "administrator"),
+            Role::Provider => write!(f, "provider"),
+            Role::Recipient => write!(f, "recipient"),
+        }
+    }
+}
+
+impl Role {
+    pub fn is_recipient(&self) -> bool {
+        match self {
+            Role::Recipient => true,
+            _ => false,
+        }
     }
 }
 

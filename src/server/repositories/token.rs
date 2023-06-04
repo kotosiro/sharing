@@ -1,5 +1,4 @@
 use crate::server::entities::token::Entity;
-use crate::server::middlewares::jwt::Role;
 use crate::server::utilities::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
@@ -12,7 +11,7 @@ use uuid::Uuid;
 pub struct Row {
     pub id: Uuid,
     pub email: String,
-    pub role: Role,
+    pub role: String,
     pub value: String,
     pub created_by: Uuid,
     pub created_at: DateTime<Utc>,
@@ -66,7 +65,6 @@ mod tests {
     use anyhow::Result;
     use sqlx::PgConnection;
     use sqlx::PgPool;
-    use std::str::FromStr;
 
     async fn create_account(tx: &mut PgConnection) -> Result<Account> {
         let roles = vec![
@@ -91,13 +89,15 @@ mod tests {
     }
 
     async fn create_token(account_id: &AccountId, tx: &mut PgConnection) -> Result<Entity> {
-        let roles = vec!["administrator", "provider", "recipient"];
-        let role = testutils::rand::choose(&roles);
-        let role = Role::from_str(role).context("failed to choose role")?;
+        let roles = vec![
+            String::from("administrator"),
+            String::from("provider"),
+            String::from("recipient"),
+        ];
         let token = Entity::new(
             testutils::rand::uuid(),
             testutils::rand::email(),
-            role,
+            testutils::rand::choose(&roles).to_owned(),
             testutils::rand::string(10),
             account_id.to_uuid().to_string(),
         )

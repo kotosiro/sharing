@@ -67,7 +67,7 @@ pub async fn login(
         account.name().to_string(),
         account.email().to_string(),
         account.namespace().to_string(),
-        Role::Administrator,
+        Role::Administrator.to_string(),
         account.ttl().to_i64(),
     ) else {
         tracing::error!("request is not handled correctly due to a server error while creating profile");
@@ -76,7 +76,7 @@ pub async fn login(
     let Ok(token) = TokenEntity::new(
 	None,
 	account.email().to_string(),
-        Role::Administrator,
+        Role::Administrator.to_string(),
 	profile.bearer_token.clone(),
 	account.id().to_string(),
     ) else {
@@ -128,7 +128,7 @@ pub async fn profile(Extension(account): Extension<AccountEntity>) -> Result<Res
         account.name().to_string(),
         account.email().to_string(),
         account.namespace().to_string(),
-        Role::Recipient,
+        Role::Recipient.to_string(),
         account.ttl().to_i64(),
     ) else {
         tracing::error!("request is not handled correctly due to a server error while creating profile");

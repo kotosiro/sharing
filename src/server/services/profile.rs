@@ -66,11 +66,12 @@ impl Service {
         name: String,
         email: String,
         namespace: String,
-        role: Role,
+        role: String,
         ttl: i64,
     ) -> Result<Profile> {
         let (expiration_secs, expiration_time) =
             self::new_expiration(ttl).context("expiration time calculation failed")?;
+        let role: Role = role.parse().context("role parse failed")?;
         let token = self::new_token(name, email, namespace, role, expiration_secs)
             .context("profile creation failed")?;
         Ok(Profile {
@@ -94,15 +95,17 @@ mod tests {
 
     //#[test]
     fn test_expired_profile() -> Result<()> {
-        let roles = vec!["administrator", "provider", "recipient"];
-        let role = testutils::rand::choose(&roles);
-        let role = Role::from_str(role).context("failed to choose role")?;
+        let roles = vec![
+            String::from("administrator"),
+            String::from("provider"),
+            String::from("recipient"),
+        ];
         let two_mins = Duration::from_millis(120000);
         let profile = Service::issue(
             testutils::rand::string(10),
             testutils::rand::string(10),
             testutils::rand::string(10),
-            role,
+            testutils::rand::choose(&roles).to_owned(),
             0,
         )
         .expect("profile should be issued properly");
@@ -119,14 +122,16 @@ mod tests {
 
     #[test]
     fn test_unexpired_profile() -> Result<()> {
-        let roles = vec!["administrator", "provider", "recipient"];
-        let role = testutils::rand::choose(&roles);
-        let role = Role::from_str(role).context("failed to choose role")?;
+        let roles = vec![
+            String::from("administrator"),
+            String::from("provider"),
+            String::from("recipient"),
+        ];
         let profile = Service::issue(
             testutils::rand::string(10),
             testutils::rand::string(10),
             testutils::rand::string(10),
-            role,
+            testutils::rand::choose(&roles).to_owned(),
             testutils::rand::i64(100000, 1000000),
         )
         .expect("profile should be issued properly");

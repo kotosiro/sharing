@@ -223,11 +223,10 @@ mod tests {
         assert!(matches!(Role::from_str(role), Ok(_)));
     }
 
-    //    #[test]
-    //    fn test_invalid_role() {
-    //        assert!(matches!(
-    //            Ttl::new(testutils::rand::i64(-100000, -1)),
-    //            Err(_)
-    //        ));
-    //    }
+    #[test]
+    fn test_invalid_role() {
+        let candidates = vec!["apple", "orange", "strawberry", "grape"];
+        let role = testutils::rand::choose(&candidates);
+        assert!(matches!(Role::from_str(role), Err(_)));
+    }
 }

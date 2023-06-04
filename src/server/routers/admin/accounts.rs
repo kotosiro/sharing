@@ -65,6 +65,10 @@ pub async fn post(
         tracing::error!("requested account data is malformed");
         return Err(Error::ValidationFailed);
     };
+    if account.role().is_recipient() {
+        tracing::error!("requested account data is malformed");
+        return Err(Error::ValidationFailed);
+    }
     match PostgresUtility::error(account.save(&state.pg_pool).await)? {
         Ok(_) => {
             tracing::info!("account was successfully registered");
