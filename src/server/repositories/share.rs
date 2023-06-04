@@ -12,6 +12,7 @@ use uuid::Uuid;
 pub struct Row {
     pub id: Uuid,
     pub name: String,
+    pub description: String,
     pub created_by: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -29,15 +30,18 @@ impl Repository {
             "INSERT INTO share (
                  id,
                  name,
+                 description,
                  created_by
-             ) VALUES ($1, $2, $3)
+             ) VALUES ($1, $2, $3, $4)
              ON CONFLICT(id)
              DO UPDATE
              SET name = $2,
-                 created_by = $3",
+                 description = $3,
+                 created_by = $4",
         )
         .bind(share.id())
         .bind(share.name())
+        .bind(share.description())
         .bind(share.created_by())
         .execute(&mut *conn)
         .await
@@ -56,6 +60,7 @@ impl Repository {
             "SELECT
                  id,
                  name,
+                 description,
                  created_by,
                  created_at,
                  updated_at
@@ -110,6 +115,7 @@ mod tests {
         let share = Entity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
+            testutils::rand::string(100),
             account_id.to_uuid().to_string(),
         )
         .context("failed to validate share")?;
@@ -138,6 +144,7 @@ mod tests {
         if let Some(fetched) = fetched {
             assert_eq!(&fetched.id, share.id().as_uuid());
             assert_eq!(&fetched.name, share.name().as_str());
+            assert_eq!(&fetched.description, share.description().as_str());
             assert_eq!(&fetched.created_by, share.created_by().as_uuid());
         } else {
             panic!("created share should be matched");

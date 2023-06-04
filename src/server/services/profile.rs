@@ -89,7 +89,6 @@ mod tests {
     use crate::config::JWT_SECRET;
     use jsonwebtoken::decode;
     use jsonwebtoken::Validation;
-    use std::str::FromStr;
     use std::thread::sleep;
     use std::time::Duration;
 

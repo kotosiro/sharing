@@ -12,6 +12,7 @@ use utoipa::ToSchema;
 pub struct Share {
     pub id: String,
     pub name: String,
+    pub description: String,
 }
 
 impl Share {
@@ -19,6 +20,7 @@ impl Share {
         Self {
             id: entity.id().to_string(),
             name: entity.name().to_string(),
+            description: entity.description().to_string(),
         }
     }
 }
@@ -38,7 +40,8 @@ impl Service {
         let mut builder = QueryBuilder::new(
             "SELECT
                  id::text,
-                 name
+                 name,
+                 description
              FROM share",
         );
         if let Some(name) = after {
@@ -75,7 +78,8 @@ impl Service {
         let row: Option<Share> = sqlx::query_as::<_, Share>(
             "SELECT
                  id::text,
-                 name
+                 name,
+                 description
              FROM share
              WHERE name = $1",
         )
@@ -130,6 +134,7 @@ mod tests {
         let share = ShareEntity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
+            testutils::rand::string(100),
             account_id.to_uuid().to_string(),
         )
         .context("failed to validate share")?;
@@ -211,6 +216,7 @@ mod tests {
         if let Some(fetched) = fetched {
             assert_eq!(&fetched.id, share.id().as_uuid().to_string().as_str());
             assert_eq!(&fetched.name, share.name().as_str());
+            assert_eq!(&fetched.description, share.description().as_str());
         } else {
             panic!("created account should be found");
         }

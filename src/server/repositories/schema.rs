@@ -116,6 +116,7 @@ mod tests {
         let share = Share::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
+            testutils::rand::string(100),
             account_id.to_uuid().to_string(),
         )
         .context("failed to validate share")?;

@@ -18,6 +18,7 @@ use utoipa::ToSchema;
 pub struct AdminSharesPostRequest {
     pub id: Option<String>,
     pub name: String,
+    pub description: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -44,7 +45,7 @@ pub async fn post(
     Extension(state): Extension<SharedState>,
     Json(payload): Json<AdminSharesPostRequest>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareEntity::new(payload.id, payload.name, account.id().to_string()) else {
+    let Ok(share) = ShareEntity::new(payload.id, payload.name, payload.description, account.id().to_string()) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
