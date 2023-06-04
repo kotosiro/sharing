@@ -79,7 +79,10 @@ Create a New Sharing via the API
  1. Log in to Kotosiro Sharing and get the admin access token by running the following command:
  
 ```bash
- $ curl -s -X POST http://localhost:8080/admin/login -H "Content-Type: application/json" -d '{"account": "kotosiro", "password": "password"}' | jq '.'
+ $ curl -s -X POST http://localhost:8080/admin/login \
+        -H "Content-Type: application/json" \
+		-d '{"account": "kotosiro", "password": "password"}' \
+		| jq '.'
 {
   "profile": {
     "shareCredentialsVersion": 1,
@@ -93,7 +96,11 @@ Create a New Sharing via the API
  2. Register a new share by running the following command:
  
 ```bash
-  $ curl -s -X POST "http://localhost:8080/admin/shares" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "name": "share1" }' | jq '.'
+  $ curl -s -X POST "http://localhost:8080/admin/shares" \
+         -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
+		 -H "Content-Type: application/json" \
+		 -d'{ "name": "share1", "description": "This is a test share" }' \
+		 | jq '.'
 {
   "share": {
     "id": "6986c361-5e6a-4554-b698-11875d6598e0",
@@ -105,7 +112,11 @@ Create a New Sharing via the API
  3. Register a new table by running the following command:
 
 ```bash
- $ curl -s -X POST "http://localhost:8080/admin/tables" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "name": "table1", "location": "s3://kotosiro-sharing-test/examination" }' | jq '.'
+ $ curl -s -X POST "http://localhost:8080/admin/tables"
+        -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
+		-H "Content-Type: application/json" \
+		-d'{ "name": "table1", "location": "s3://kotosiro-sharing-test/examination", "description": "This is a test table" }' \
+		| jq '.'
 {
   "table": {
     "id": "579df9cd-a674-459d-9599-d38d54583cd0",
@@ -118,7 +129,11 @@ Create a New Sharing via the API
  4. Register a new table as a part of schema1 in the share1 by running the following command:
  
 ```bash
- $ curl -s -X POST "http://localhost:8080/admin/shares/share1/schemas/schema1/tables" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "table": "table1" }' | jq '.'
+ $ curl -s -X POST "http://localhost:8080/admin/shares/share1/schemas/schema1/tables" \
+        -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
+		-H "Content-Type: application/json" \
+		-d'{ "table": "table1" }' \
+		| jq '.'
 {
   "schema": {
     "id": "689ed733-bec8-4796-a2dd-4f82dce6beab",
@@ -130,7 +145,10 @@ Create a New Sharing via the API
  5. Issue a new recipient profile by running the following command:
 
 ```bash
- $ curl -s -X GET "http://localhost:8080/admin/profile" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" | jq '.'
+ $ curl -s -X GET "http://localhost:8080/admin/profile" \
+        -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
+		-H "Content-Type: application/json" \
+		| jq '.'
 {
   "profile": {
     "shareCredentialsVersion": 1,
