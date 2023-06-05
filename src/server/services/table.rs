@@ -15,6 +15,7 @@ pub struct Table {
     pub id: String,
     pub name: String,
     pub location: String,
+    pub description: String,
 }
 
 impl Table {
@@ -23,6 +24,7 @@ impl Table {
             id: entity.id().to_string(),
             name: entity.name().to_string(),
             location: entity.location().to_string(),
+            description: entity.description().to_string(),
         }
     }
 }
@@ -53,7 +55,8 @@ impl Service {
             r#"SELECT
                    id::text,
                    name,
-                   location
+                   location,
+                   description
                FROM "table""#,
         );
         if let Some(name) = after {
@@ -91,7 +94,8 @@ impl Service {
             r#"SELECT
                    id::text,
                    name,
-                   location
+                   location,
+                   description
                FROM "table"
                WHERE name = $1"#,
         )
@@ -119,7 +123,8 @@ impl Service {
             r#"SELECT
                    "table".id::text AS id,
                    "table".name AS name,
-                   "table".location AS location
+                   "table".location AS location,
+                   "table".description AS description
                FROM "table"
                LEFT JOIN "schema" ON "schema".table_id = "table".id
                LEFT JOIN share ON share.id = "schema".share_id
@@ -324,6 +329,7 @@ mod tests {
             testutils::rand::uuid(),
             testutils::rand::string(10),
             testutils::rand::string(10),
+            testutils::rand::string(100),
             account_id.to_uuid().to_string(),
         )
         .context("failed to validate table")?;
@@ -426,6 +432,8 @@ mod tests {
         if let Some(fetched) = fetched {
             assert_eq!(&fetched.id, table.id().as_uuid().to_string().as_str());
             assert_eq!(&fetched.name, table.name().as_str());
+            assert_eq!(&fetched.location, table.location().as_str());
+            assert_eq!(&fetched.description, table.description().as_str());
         } else {
             panic!("created table should be found");
         }
@@ -462,6 +470,8 @@ mod tests {
         if let Some(fetched) = fetched {
             assert_eq!(&fetched.id, table.id().as_uuid().to_string().as_str());
             assert_eq!(&fetched.name, table.name().as_str());
+            assert_eq!(&fetched.location, table.location().as_str());
+            assert_eq!(&fetched.description, table.description().as_str());
         } else {
             panic!("created table should be found");
         }

@@ -13,6 +13,7 @@ pub struct Row {
     pub id: Uuid,
     pub name: String,
     pub location: String,
+    pub description: String,
     pub created_by: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -31,17 +32,20 @@ impl Repository {
                    id,
                    name,
                    location,
+                   description,
                    created_by
-               ) VALUES ($1, $2, $3, $4)
+               ) VALUES ($1, $2, $3, $4, $5)
                ON CONFLICT(id)
                DO UPDATE
                SET name = $2,
                    location = $3,
-                   created_by = $4"#,
+                   description = $4,
+                   created_by = $5"#,
         )
         .bind(table.id())
         .bind(table.name())
         .bind(table.location())
+        .bind(table.description())
         .bind(table.created_by())
         .execute(&mut *conn)
         .await
@@ -61,6 +65,7 @@ impl Repository {
                    id,
                    name,
                    location,
+                   description,
                    created_by,
                    created_at,
                    updated_at
@@ -116,6 +121,7 @@ mod tests {
             testutils::rand::uuid(),
             testutils::rand::string(10),
             testutils::rand::string(10),
+            testutils::rand::string(100),
             account_id.to_uuid().to_string(),
         )
         .context("failed to validate table")?;
@@ -145,6 +151,7 @@ mod tests {
             assert_eq!(&fetched.id, table.id().as_uuid());
             assert_eq!(&fetched.name, table.name().as_str());
             assert_eq!(&fetched.location, table.location().as_str());
+            assert_eq!(&fetched.description, table.description().as_str());
             assert_eq!(&fetched.created_by, table.created_by().as_uuid());
         } else {
             panic!("created table should be matched");

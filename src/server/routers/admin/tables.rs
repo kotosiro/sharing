@@ -25,6 +25,7 @@ pub struct AdminTablesPostRequest {
     pub id: Option<String>,
     pub name: String,
     pub location: String,
+    pub description: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -51,7 +52,7 @@ pub async fn post(
     Extension(state): Extension<SharedState>,
     Json(payload): Json<AdminTablesPostRequest>,
 ) -> Result<Response, Error> {
-    let Ok(table) = TableEntity::new(payload.id, payload.name, payload.location, account.id().to_string()) else {
+    let Ok(table) = TableEntity::new(payload.id, payload.name, payload.location, payload.description, account.id().to_string()) else {
         tracing::error!("requested table data is malformed");
         return Err(Error::ValidationFailed);
     };
