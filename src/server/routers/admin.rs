@@ -78,6 +78,7 @@ pub async fn login(
 	account.email().to_string(),
         Role::Administrator.to_string(),
 	profile.bearer_token.clone(),
+	true,
 	account.id().to_string(),
     ) else {
         tracing::error!("request is not handled correctly due to a server error while creating token");

@@ -1,3 +1,4 @@
+use crate::impl_bool_property;
 use crate::impl_string_property;
 use crate::impl_uuid_property;
 use crate::server::entities::account::Id as AccountId;
@@ -34,6 +35,13 @@ pub struct Value {
 
 impl_string_property!(Value);
 
+#[derive(Debug, Clone, PartialEq, Eq, Validate)]
+pub struct Activated {
+    value: bool,
+}
+
+impl_bool_property!(Activated);
+
 #[derive(Debug, Clone, PartialEq, Eq, Getters, Setters)]
 pub struct Entity {
     #[getset(get = "pub")]
@@ -44,6 +52,8 @@ pub struct Entity {
     role: Role,
     #[getset(get = "pub", set = "pub")]
     value: Value,
+    #[getset(get = "pub", set = "pub")]
+    activated: Activated,
     #[getset(get = "pub")]
     created_by: AccountId,
 }
@@ -54,6 +64,7 @@ impl Entity {
         email: String,
         role: String,
         value: String,
+        activated: bool,
         created_by: String,
     ) -> Result<Self> {
         Ok(Self {
@@ -61,6 +72,7 @@ impl Entity {
             email: Email::new(email)?,
             role: role.parse()?,
             value: Value::new(value)?,
+            activated: Activated::new(activated),
             created_by: AccountId::try_from(created_by)?,
         })
     }
