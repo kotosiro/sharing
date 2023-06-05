@@ -13,6 +13,7 @@ pub struct Row {
     pub email: String,
     pub role: String,
     pub value: String,
+    pub activated: bool,
     pub created_by: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -32,19 +33,22 @@ impl Repository {
                    email,
                    "role",
                    "value",
+                   activated,
                    created_by
-               ) VALUES ($1, $2, $3, $4, $5)
+               ) VALUES ($1, $2, $3, $4, $5, $6)
                ON CONFLICT(id)
                DO UPDATE
                SET email = $2,
                    "role" = $3,
                    "value" = $4,
-                   created_by = $5"#,
+                   activated = $5,
+                   created_by = $6"#,
         )
         .bind(token.id())
         .bind(token.email())
         .bind(token.role())
         .bind(token.value())
+        .bind(token.activated())
         .bind(token.created_by())
         .execute(&mut *conn)
         .await
@@ -99,6 +103,7 @@ mod tests {
             testutils::rand::email(),
             testutils::rand::choose(&roles).to_owned(),
             testutils::rand::string(10),
+            testutils::rand::bool(),
             account_id.to_uuid().to_string(),
         )
         .context("failed to validate token")?;
